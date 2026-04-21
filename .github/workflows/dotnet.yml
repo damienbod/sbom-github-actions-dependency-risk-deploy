@@ -46,15 +46,6 @@ jobs:
             -pv "1.0.0" \
             -ps damienbod \
             -mi SPDX:3.1
-          # Ensure a VCS externalRef entry with a locator is present
-          SBOM_FILE=./_manifest/spdx_3.1/manifest.spdx.json
-          REPO_URL="https://github.com/${{ github.repository }}"
-          jq --arg locator "$REPO_URL" \
-            'if ((.externalRef // []) | map(select(.externalRefType == "vcs")) | length) == 0 then
-              .externalRef = (.externalRef // []) + [{"externalRefType": "vcs", "locator": [$locator], "comment": "Source code repository"}]
-            else . end' \
-            "$SBOM_FILE" > /tmp/sbom_patched.json
-          mv /tmp/sbom_patched.json "$SBOM_FILE"
 
       - name: Validate SBOM
         run: |
@@ -65,12 +56,23 @@ jobs:
             exit 1
           fi
           echo "SBOM spdxVersion: $SPDX_VERSION ✓"
-          LOCATOR_COUNT=$(jq '[(.externalRef // [])[] | select(.locator != null)] | length' "$SBOM_FILE")
-          if [ "$LOCATOR_COUNT" -lt 1 ]; then
-            echo "SBOM validation failed: no externalRef entry with a locator"
+          # Validate that sbom-tool emitted per-package externalRef entries with PURL locators
+          # (e.g. pkg:npm/punycode@1.4.1, pkg:nuget/System.Drawing.Common@9.0.3) on each
+          # software_Package node inside the @graph array.
+          PKG_COUNT=$(jq '[
+            (.["@graph"] // [])[]
+            | select(.type == "software_Package" or .type == "Package")
+            | select(
+                ((.externalRef // [])
+                  | map(select((.locator // []) | length > 0))
+                  | length) > 0
+              )
+          ] | length' "$SBOM_FILE")
+          if [ "$PKG_COUNT" -lt 1 ]; then
+            echo "SBOM validation failed: no Package nodes with externalRef PURL locators found in @graph"
             exit 1
           fi
-          echo "SBOM externalRef: $LOCATOR_COUNT entries with locator ✓"
+          echo "SBOM packages with externalRef locators: $PKG_COUNT ✓"
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
