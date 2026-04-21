@@ -75,7 +75,7 @@ jobs:
           echo "::add-mask::$ACCESS_TOKEN"
           echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
 
-      - name: Upload SBOM to organisational-mgmt API
+      - name: Upload SBOM to dependency risk API
         # Endpoint determined from:
         # https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/openapi/v1/openapi.json
         # SbomType is set to "Spdx3x" as required by the API contract (see issue #1).
