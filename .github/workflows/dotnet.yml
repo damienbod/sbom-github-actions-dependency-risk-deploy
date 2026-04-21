@@ -84,7 +84,7 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ steps.get_token.outputs.access_token }}
         run: |
-          SBOM_FILE=./_manifest/spdx_3.0/manifest.spdx.json
+          SBOM_FILE=./_manifest/spdx_2.2/manifest.spdx.json
           if [ ! -s "$SBOM_FILE" ]; then
             echo "SBOM file not found or empty: $SBOM_FILE"
             exit 1
