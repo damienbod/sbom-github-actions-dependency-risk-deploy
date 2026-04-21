@@ -40,19 +40,18 @@ jobs:
           curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
           chmod +x $RUNNER_TEMP/sbom-tool
           $RUNNER_TEMP/sbom-tool generate \
-            -b ./sbom-output \
-            -bc . \
-            -pn BffMicrosoftEntraID \
-            -pv 1.0.0 \
+            -b ./ \
+            -bc ./ \
+            -pn mysolution \
+            -pv "1.0.0" \
             -ps damienbod \
-            -nsb https://github.com/damienbod/sbom-github-actions-dependency-risk-deploy \
-            -V Verbose
+            -mi SPDX:3.0
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
-          path: ./sbom-output/_manifest/
+          path: ./_manifest/
 
       - name: Get OAuth2 access token
         # Required secret: OAUTH_CLIENT_SECRET
@@ -82,7 +81,7 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ steps.get_token.outputs.access_token }}
         run: |
-          SBOM_FILE=./sbom-output/_manifest/spdx_2.2/manifest.spdx.json
+          SBOM_FILE=./_manifest/spdx_3.0/manifest.spdx.json
           if [ ! -s "$SBOM_FILE" ]; then
             echo "SBOM file not found or empty: $SBOM_FILE"
             exit 1
