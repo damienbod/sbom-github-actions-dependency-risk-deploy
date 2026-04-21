@@ -188,7 +188,7 @@ The following secret must be configured in the repository under **Settings > Sec
 
 | Secret name | Description |
 |---|---|
-| `OAUTH_CLIENT_SECRET` | The OAuth2 client secret used to acquire an access token from the organisational-mgmt identity provider (`https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/connect/token`). The client ID `4b685cd2-d4c3-4cef-b2e4-1f5275be77df` is already defined in the workflow. |
+| `OAUTH_CLIENT_SECRET` | The OAuth2 client secret used to acquire an access token from the organisational-mgmt identity provider (`https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/api/connect/token`). The client ID `4b685cd2-d4c3-4cef-b2e4-1f5275be77df` is already defined in the workflow. |
 
 ## github actions Azure deployment
 

@@ -62,7 +62,7 @@ jobs:
           OAUTH_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
         run: |
           TOKEN_RESPONSE=$(curl -s -X POST \
-            "https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/connect/token" \
+            "https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/api/connect/token" \
             -H "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "grant_type=client_credentials" \
             --data-urlencode "client_id=4b685cd2-d4c3-4cef-b2e4-1f5275be77df" \
@@ -89,9 +89,9 @@ jobs:
           fi
           SBOM_CONTENT=$(cat "$SBOM_FILE")
           SBOM_PAYLOAD=$(jq -n \
-            --arg solutionName "test-api-upload-spdx" \
-            --argjson organisationId 8002 \
-            --arg sbomId "test-sbom-spdx3x" \
+            --arg solutionName "Backend for frontend angular dotnet" \
+            --argjson organisationId 1 \
+            --arg sbomId "bff-vuejs-dotnet" \
             --arg sbomType "Spdx3x" \
             --arg sbom "$SBOM_CONTENT" \
             '{SolutionName: $solutionName, OrganisationId: $organisationId, SbomId: $sbomId, SbomType: $sbomType, Sbom: $sbom}')
