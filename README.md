@@ -175,44 +175,20 @@ Or just open Visual Studio and run the solution.
 
 Github actions is used for the DevOps. The build pipeline builds both the .NET project and the Vue.js project using npm. The two projects are built in the same step because the UI project is built into the wwwroot of the server project.
 
-```yaml
+After the build and tests, the pipeline also:
 
-name: .NET and npm build
+1. Generates an SBOM (Software Bill of Materials) using the [Microsoft sbom-tool](https://github.com/microsoft/sbom-tool)
+2. Uploads the SBOM as a build artifact
+3. Acquires an OAuth2 access token via client credentials from the organisational-mgmt API
+4. POSTs the SBOM JSON to the organisational-mgmt API
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+### Required GitHub Actions Secret
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+The following secret must be configured in the repository under **Settings > Secrets and variables > Actions**:
 
-    steps:
-
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: npm setup
-        working-directory: ui
-        run: npm install
-
-      - name: ui-build
-        working-directory: ui
-        run: npm run build
-
-      - name: Build
-        run: dotnet build --no-restore
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
-```
+| Secret name | Description |
+|---|---|
+| `OAUTH_CLIENT_SECRET` | The OAuth2 client secret used to acquire an access token from the organisational-mgmt identity provider (`https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/connect/token`). The client ID `4b685cd2-d4c3-4cef-b2e4-1f5275be77df` is already defined in the workflow. |
 
 ## github actions Azure deployment
 
