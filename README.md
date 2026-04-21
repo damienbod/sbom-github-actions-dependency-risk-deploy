@@ -177,10 +177,13 @@ Github actions is used for the DevOps. The build pipeline builds both the .NET p
 
 After the build and tests, the pipeline also:
 
-1. Generates an SBOM (Software Bill of Materials) using the [Microsoft sbom-tool](https://github.com/microsoft/sbom-tool)
-2. Uploads the SBOM as a build artifact
-3. Acquires an OAuth2 access token via client credentials from the organisational-mgmt API
-4. POSTs the SBOM JSON to the organisational-mgmt API
+1. Generates an SBOM (Software Bill of Materials) in **CycloneDX 1.6** format using [cdxgen](https://github.com/CycloneDX/cdxgen)
+   - The output `bom.json` declares `"specVersion": "1.6"` and `"bomFormat": "CycloneDX"`
+   - An `externalReferences` entry of type `vcs` is guaranteed, containing the GitHub repository URL as the locator
+2. Validates the SBOM — CI fails if `specVersion` ≠ `1.6` or `externalReferences` contains no entry with a `url`
+3. Uploads the SBOM as a build artifact (`_manifest/cyclonedx_1.6/bom.json`)
+4. Acquires an OAuth2 access token via client credentials from the organisational-mgmt API
+5. POSTs the SBOM JSON to the organisational-mgmt API with `SbomType: "CycloneDx1x6"`
 
 ### Required GitHub Actions Secret
 

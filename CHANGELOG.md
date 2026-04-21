@@ -1,5 +1,11 @@
 ## ASP.NET Core, Vue.js BFF using Microsoft Entra ID Changelog
 
+### 2026-04-21 1.1.0
+- Switch SBOM generation from Microsoft sbom-tool (SPDX 3.0) to cdxgen (CycloneDX 1.6)
+- SBOM now includes `externalReferences` with a VCS `url` locator pointing to the GitHub repository
+- Add CI validation step: workflow fails if SBOM specVersion ≠ 1.6 or externalReferences is absent
+- Update API upload to use `SbomType: "CycloneDx1x6"`
+
 ### 2025-12-07 1.0.0
 - Updated .NET 10
 
