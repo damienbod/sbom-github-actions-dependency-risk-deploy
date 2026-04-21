@@ -79,6 +79,8 @@ jobs:
         # Endpoint determined from:
         # https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/openapi/v1/openapi.json
         # SbomType is set to "Spdx3x" as required by the API contract (see issue #1).
+        # Note: --rawfile and @file are used instead of shell variables to avoid hitting
+        # the OS ARG_MAX limit when the SBOM JSON is large (fixes "Argument list too long").
         env:
           ACCESS_TOKEN: ${{ steps.get_token.outputs.access_token }}
         run: |
@@ -87,19 +89,23 @@ jobs:
             echo "SBOM file not found or empty: $SBOM_FILE"
             exit 1
           fi
-          SBOM_CONTENT=$(cat "$SBOM_FILE")
-          SBOM_PAYLOAD=$(jq -n \
+          # Use --rawfile to read the SBOM from disk rather than passing its content
+          # as a command-line argument, which would exceed ARG_MAX for large SBOMs.
+          # --rawfile (like --arg) binds the file content as a JSON string, matching
+          # the API contract where Sbom is a string field, not an embedded JSON object.
+          jq -n \
             --arg solutionName "backend-for-frontend-vue-js-dotnet" \
             --argjson organisationId 1 \
             --arg sbomId "bff-vuejs-dotnet" \
             --arg sbomType "Spdx3x" \
-            --arg sbom "$SBOM_CONTENT" \
-            '{SolutionName: $solutionName, OrganisationId: $organisationId, SbomId: $sbomId, SbomType: $sbomType, Sbom: $sbom}')
+            --rawfile sbom "$SBOM_FILE" \
+            '{SolutionName: $solutionName, OrganisationId: $organisationId, SbomId: $sbomId, SbomType: $sbomType, Sbom: $sbom}' \
+            > /tmp/sbom_payload.json
           HTTP_STATUS=$(curl -s -o /tmp/sbom_upload_response.json -w "%{http_code}" -X POST \
             "https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/api/sbom" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-            -d "$SBOM_PAYLOAD")
+            --data @/tmp/sbom_payload.json)
           echo "HTTP Status: $HTTP_STATUS"
           cat /tmp/sbom_upload_response.json
           if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
