@@ -35,7 +35,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
 
-      - name: Generate SBOM
+      - name: Generate SBOM (SPDX 3.1)
         run: |
           curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
           chmod +x $RUNNER_TEMP/sbom-tool
@@ -45,13 +45,40 @@ jobs:
             -pn mysolution \
             -pv "1.0.0" \
             -ps damienbod \
-            -mi SPDX:3.0
+            -mi SPDX:3.1
+
+      - name: Validate SBOM
+        run: |
+          SBOM_FILE=./_manifest/spdx_3.1/manifest.spdx.json
+          SPDX_VERSION=$(jq -r '.spdxVersion' "$SBOM_FILE")
+          if [ "$SPDX_VERSION" != "SPDX-3.1" ]; then
+            echo "SBOM validation failed: expected spdxVersion SPDX-3.1, got '$SPDX_VERSION'"
+            exit 1
+          fi
+          echo "SBOM spdxVersion: $SPDX_VERSION ✓"
+          # Validate that sbom-tool emitted per-package externalRef entries with PURL locators
+          # (e.g. pkg:npm/punycode@1.4.1, pkg:nuget/System.Drawing.Common@9.0.3) on each
+          # software_Package node inside the @graph array.
+          PKG_COUNT=$(jq '[
+            (.["@graph"] // [])[]
+            | select(.type == "software_Package" or .type == "Package")
+            | select(
+                ((.externalRef // [])
+                  | map(select((.locator // []) | length > 0))
+                  | length) > 0
+              )
+          ] | length' "$SBOM_FILE")
+          if [ "$PKG_COUNT" -lt 1 ]; then
+            echo "SBOM validation failed: no Package nodes with externalRef PURL locators found in @graph"
+            exit 1
+          fi
+          echo "SBOM packages with externalRef locators: $PKG_COUNT ✓"
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
-          path: ./_manifest/
+          path: ./_manifest/spdx_3.1/
 
       - name: Get OAuth2 access token
         # Required secret: OAUTH_CLIENT_SECRET
@@ -78,13 +105,13 @@ jobs:
       - name: Upload SBOM to dependency risk API
         # Endpoint determined from:
         # https://organisational-mgmt.wonderfulsmoke-b96b7f1a.switzerlandnorth.azurecontainerapps.io/openapi/v1/openapi.json
-        # SbomType is set to "Spdx3x" as required by the API contract (see issue #1).
+        # SbomType is set to "Spdx3x" to match the SPDX 3.1 format generated above.
         # Note: --rawfile and @file are used instead of shell variables to avoid hitting
         # the OS ARG_MAX limit when the SBOM JSON is large (fixes "Argument list too long").
         env:
           ACCESS_TOKEN: ${{ steps.get_token.outputs.access_token }}
         run: |
-          SBOM_FILE=./_manifest/spdx_3.0/manifest.spdx.json
+          SBOM_FILE=./_manifest/spdx_3.1/manifest.spdx.json
           if [ ! -s "$SBOM_FILE" ]; then
             echo "SBOM file not found or empty: $SBOM_FILE"
             exit 1
