@@ -45,7 +45,7 @@ jobs:
             -pn mysolution \
             -pv "1.0.0" \
             -ps damienbod \
-            -mi SPDX:3.0
+            -mi SPDX:2.2
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
