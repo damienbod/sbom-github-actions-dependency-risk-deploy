@@ -65,6 +65,7 @@ jobs:
             -H "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "grant_type=client_credentials" \
             --data-urlencode "client_id=4b685cd2-d4c3-4cef-b2e4-1f5275be77df" \
+            --data-urlencode "scope=backend-for-frontend-vuejs-dotnet" \
             --data-urlencode "client_secret=${OAUTH_CLIENT_SECRET}")
           ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token // empty')
           if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "null" ]; then
@@ -88,7 +89,7 @@ jobs:
           fi
           SBOM_CONTENT=$(cat "$SBOM_FILE")
           SBOM_PAYLOAD=$(jq -n \
-            --arg solutionName "Backend for frontend angular dotnet" \
+            --arg solutionName "backend-for-frontend-vue-js-dotnet" \
             --argjson organisationId 1 \
             --arg sbomId "bff-vuejs-dotnet" \
             --arg sbomType "Spdx3x" \
