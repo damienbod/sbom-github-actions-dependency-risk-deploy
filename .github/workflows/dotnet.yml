@@ -35,7 +35,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
 
-      - name: Generate SBOM (SPDX 3.1)
+      - name: Generate SBOM (SPDX 3)
         run: |
           curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
           chmod +x $RUNNER_TEMP/sbom-tool
@@ -45,7 +45,7 @@ jobs:
             -pn mysolution \
             -pv "1.0.0" \
             -ps damienbod \
-            -mi SPDX:3.1
+            -mi SPDX:3.0
 
       - name: Validate SBOM
         run: |
