@@ -50,7 +50,7 @@ jobs:
             -pn mysolution \
             -pv "1.0.0" \
             -ps damienbod \
-            -mi SPDX:2.2
+            -mi SPDX:3.0
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
@@ -89,7 +89,7 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ steps.get_token.outputs.access_token }}
         run: |
-          SBOM_FILE=./_manifest/spdx_2.2/manifest.spdx.json
+          SBOM_FILE=./_manifest/spdx_3.0/manifest.spdx.json
           if [ ! -s "$SBOM_FILE" ]; then
             echo "SBOM file not found or empty: $SBOM_FILE"
             exit 1
